@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>15-Day Habit Tracker · Jun 1–15, 2026</title>
+<style>
+  :root {
+    --bg: #f9f8f6;
+    --card: #ffffff;
+    --border: #e5e3dc;
+    --border-hover: #ccc9be;
+    --text: #1a1a18;
+    --text-2: #6b6a65;
+    --text-3: #a09e99;
+    --teal-bg: #e1f5ee;
+    --teal: #1d9e75;
+    --teal-dark: #0f6e56;
+    --blue-bg: #e6f1fb;
+    --blue: #185fa5;
+    --amber-bg: #faeeda;
+    --amber: #854f0b;
+    --red-bg: #fcebeb;
+    --red: #a32d2d;
+    --green-pip: #9fe1cb;
+    --radius: 10px;
+    --radius-sm: 7px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --card: #242422;
+      --border: #333330;
+      --border-hover: #4a4a46;
+      --text: #f0ede8;
+      --text-2: #999690;
+      --text-3: #5a5854;
+      --teal-bg: #0a3326;
+      --teal: #5dcaa5;
+      --teal-dark: #9fe1cb;
+      --blue-bg: #0a2540;
+      --blue: #85b7eb;
+      --amber-bg: #2a1e08;
+      --amber: #ef9f27;
+      --red-bg: #2a0f0f;
+      --red: #f09595;
+      --green-pip: #085041;
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+  }
+  a { color: inherit; }
+  .app { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  .header { margin-bottom: 1.5rem; }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -.3px; }
+  .header p { font-size: 13px; color: var(--text-2); margin-top: 3px; }
+  .tabs { display: flex; gap: 4px; background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 4px; margin-bottom: 1.25rem; }
+  .tab { flex: 1; padding: 8px 6px; border: none; background: transparent; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; color: var(--text-2); cursor: pointer; transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+  .tab.active { background: var(--bg); color: var(--text); border: 0.5px solid var(--border); }
+  .tab svg { width: 15px; height: 15px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── DAILY ── */
+  .date-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .nav-btn { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 7px 14px; cursor: pointer; font-size: 14px; color: var(--text); transition: background .12s; }
+  .nav-btn:hover { background: var(--border); }
+  .nav-btn:disabled { opacity: .35; cursor: not-allowed; }
+  .day-label { font-size: 16px; font-weight: 600; }
+  .day-label span { font-size: 13px; font-weight: 400; color: var(--text-2); margin-left: 6px; }
+
+  .score-bar { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 14px; }
+  .score-num { font-size: 30px; font-weight: 700; min-width: 58px; letter-spacing: -1px; }
+  .score-track { flex: 1; }
+  .track-bar { height: 7px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 5px; }
+  .track-fill { height: 100%; border-radius: 4px; transition: width .35s ease, background .35s; }
+  .track-labels { font-size: 11px; color: var(--text-3); }
+  .badge { font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 20px; white-space: nowrap; }
+  .badge-excellent { background: var(--teal-bg); color: var(--teal-dark); }
+  .badge-good { background: var(--blue-bg); color: var(--blue); }
+  .badge-caution { background: var(--amber-bg); color: var(--amber); }
+  .badge-bad { background: var(--red-bg); color: var(--red); }
+  .badge-none { background: var(--border); color: var(--text-3); }
+
+  .section-title { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; margin: 1.25rem 0 .6rem; }
+  .habits-list { display: flex; flex-direction: column; gap: 5px; }
+  .habit { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all .12s; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .habit:hover { border-color: var(--border-hover); }
+  .habit.done { background: var(--teal-bg); border-color: var(--green-pip); }
+  .check { width: 21px; height: 21px; border-radius: 50%; border: 1.5px solid var(--border-hover); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .12s; }
+  .habit.done .check { background: var(--teal); border-color: var(--teal); }
+  .check svg { width: 12px; height: 12px; color: white; opacity: 0; transition: opacity .12s; }
+  .habit.done .check svg { opacity: 1; }
+  .habit-name { font-size: 14px; flex: 1; }
+  .habit.done .habit-name { color: var(--teal-dark); }
+  .habit-cat { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: var(--bg); color: var(--text-3); }
+  .habit.done .habit-cat { background: rgba(29,158,117,.12); color: var(--teal-dark); }
+
+  .metrics-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 1rem; }
+  .metric-card { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: .75rem 1rem; }
+  .metric-label { font-size: 11px; color: var(--text-2); margin-bottom: 7px; font-weight: 500; }
+  .metric-val { font-size: 20px; font-weight: 600; margin-top: 4px; }
+  input[type=range] { width: 100%; accent-color: var(--teal); cursor: pointer; }
+
+  .notes-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .note-card { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: .75rem; }
+  .note-card label { font-size: 11px; color: var(--text-2); font-weight: 500; display: block; margin-bottom: 6px; }
+  textarea { width: 100%; background: var(--bg); border: 0.5px solid var(--border); border-radius: 6px; padding: 7px 9px; font-size: 13px; color: var(--text); resize: none; font-family: inherit; line-height: 1.5; }
+  textarea:focus { outline: none; border-color: var(--teal); }
+
+  .save-btn { width: 100%; margin-top: 1rem; padding: 11px; background: var(--text); color: var(--bg); border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .save-btn:hover { opacity: .85; }
+  .toast { text-align: center; font-size: 13px; color: var(--teal); margin-top: 8px; min-height: 20px; transition: opacity .4s; opacity: 0; font-weight: 500; }
+
+  /* ── OVERVIEW ── */
+  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+  .sum-card { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: .75rem 1rem; }
+  .sum-val { font-size: 24px; font-weight: 700; letter-spacing: -.5px; }
+  .sum-label { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+  .overview-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 1.25rem; }
+  .day-cell { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: .5rem .4rem; text-align: center; cursor: pointer; transition: border-color .12s; }
+  .day-cell:hover { border-color: var(--border-hover); }
+  .day-cell.today { border: 1.5px solid var(--blue); }
+  .dc-date { font-size: 10px; color: var(--text-3); margin-bottom: 3px; }
+  .dc-score { font-size: 16px; font-weight: 700; }
+  .dc-score.excellent { color: var(--teal); }
+  .dc-score.good { color: var(--blue); }
+  .dc-score.caution { color: var(--amber); }
+  .dc-score.bad { color: var(--red); }
+  .dc-score.empty { color: var(--text-3); font-weight: 400; font-size: 13px; }
+  .dc-pips { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; margin-top: 4px; min-height: 14px; }
+  .pip { width: 5px; height: 5px; border-radius: 50%; background: var(--border); }
+  .pip.done { background: var(--teal); }
+  .trend-wrap { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+  .trend-title { font-size: 12px; color: var(--text-2); margin-bottom: .75rem; font-weight: 500; }
+  canvas { display: block; width: 100%; }
+
+  /* ── WEEKLY ── */
+  .weekly-list { display: flex; flex-direction: column; gap: 6px; }
+  .weekly-item { display: flex; align-items: center; gap: 10px; padding: 11px 12px; background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all .12s; user-select: none; }
+  .weekly-item:hover { border-color: var(--border-hover); }
+  .weekly-item.done { background: var(--teal-bg); border-color: var(--green-pip); }
+  .weekly-item.done .habit-name { color: var(--teal-dark); }
+  .w-day { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--bg); color: var(--text-3); white-space: nowrap; min-width: 90px; text-align: center; }
+  .weekly-item.done .w-day { background: rgba(29,158,117,.12); color: var(--teal-dark); }
+  .weekly-item.done .check { background: var(--teal); border-color: var(--teal); }
+  .weekly-item.done .check svg { opacity: 1; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 480px) {
+    .summary-row { grid-template-columns: repeat(2, 1fr); }
+    .overview-grid { grid-template-columns: repeat(5, 1fr); }
+    .metrics-row { grid-template-columns: 1fr 1fr; }
+    .notes-row { grid-template-columns: 1fr; }
+    .dc-date { font-size: 9px; }
+    .dc-score { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>15-Day Habit Tracker</h1>
+    <p>June 1–15, 2026 · Daily target: 8/12 · Excellent: 10/12</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('daily')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m9 12 2 2 4-4"/></svg>
+      Daily
+    </button>
+    <button class="tab" onclick="switchTab('overview')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Overview
+    </button>
+    <button class="tab" onclick="switchTab('weekly')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/><path d="M12 7v5l3 3"/></svg>
+      Weekly
+    </button>
+  </div>
+
+  <!-- DAILY -->
+  <div class="view active" id="view-daily">
+    <div class="date-nav">
+      <button class="nav-btn" id="btn-prev" onclick="prevDay()">&#8592; Prev</button>
+      <div class="day-label" id="day-label">Day 1 <span>Jun 1</span></div>
+      <button class="nav-btn" id="btn-next" onclick="nextDay()">Next &#8594;</button>
+    </div>
+
+    <div class="score-bar">
+      <div class="score-num" id="score-num">0/12</div>
+      <div class="score-track">
+        <div class="track-bar"><div class="track-fill" id="track-fill" style="width:0%"></div></div>
+        <div class="track-labels">Target 8 · Excellent 10 · Floor 5</div>
+      </div>
+      <div class="badge badge-none" id="score-badge">—</div>
+    </div>
+
+    <div class="section-title">Daily habits</div>
+    <div class="habits-list" id="habits-list"></div>
+
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-label">😊 Mood</div>
+        <input type="range" min="1" max="10" step="1" value="5" id="sl-mood" oninput="setMetric('mood',this.value)">
+        <div class="metric-val" id="v-mood">5/10</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">⚡ Energy</div>
+        <input type="range" min="1" max="10" step="1" value="5" id="sl-energy" oninput="setMetric('energy',this.value)">
+        <div class="metric-val" id="v-energy">5/10</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">🔥 Streak</div>
+        <div class="metric-val" id="v-streak" style="margin-top:12px">—</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px">days on target</div>
+      </div>
+    </div>
+
+    <div class="notes-row">
+      <div class="note-card">
+        <label>❌ One mistake today</label>
+        <textarea rows="2" id="n-mistake" placeholder="What went wrong…" oninput="autoSave()"></textarea>
+      </div>
+      <div class="note-card">
+        <label>⬆️ One improvement tomorrow</label>
+        <textarea rows="2" id="n-improve" placeholder="One thing to do better…" oninput="autoSave()"></textarea>
+      </div>
+    </div>
+
+    <button class="save-btn" onclick="saveDay()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save day
+    </button>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="view" id="view-overview">
+    <div class="summary-row" id="summary-row"></div>
+    <div class="section-title">All 15 days — tap a day to edit</div>
+    <div class="overview-grid" id="overview-grid"></div>
+    <div class="trend-wrap">
+      <div class="trend-title">Score trend · dashed lines: floor (5), target (8), excellent (10)</div>
+      <canvas id="trend-canvas" height="110"></canvas>
+    </div>
+  </div>
+
+  <!-- WEEKLY -->
+  <div class="view" id="view-weekly">
+    <div class="section-title">Weekly care habits</div>
+    <div class="weekly-list" id="weekly-list"></div>
+    <button class="save-btn" style="margin-top:1rem" onclick="saveWeekly()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save weekly
+    </button>
+    <div class="toast" id="toast-w"></div>
+  </div>
+</div>
+
+<script>
+const HABITS = [
+  {id:'wake',    name:'Woke up at 6:00 AM',          cat:'Sleep'},
+  {id:'sleep',   name:'Slept by 11:00 PM',            cat:'Sleep'},
+  {id:'phone',   name:'Phone away by 10:15 PM',       cat:'Sleep'},
+  {id:'meditate',name:'Meditation 10–15 min',         cat:'Mind'},
+  {id:'study',   name:'Study 5+ focused hours',       cat:'Study'},
+  {id:'german',  name:'German 90 min',                cat:'German'},
+  {id:'gym',     name:'Gym or 45-min walk',           cat:'Workout'},
+  {id:'meals',   name:'Ate planned meals',            cat:'Food'},
+  {id:'protein', name:'Protein with every meal',      cat:'Food'},
+  {id:'water',   name:'Water 2.5–3 L',               cat:'Food'},
+  {id:'foodprep',name:'Food prep for next day',       cat:'Food'},
+  {id:'grooming',name:'Face care + basic grooming',  cat:'Care'},
+];
+
+const WEEKLY = [
+  {id:'hair',     name:'Curd + egg hair mask (no lemon)', day:'Saturday'},
+  {id:'facepack', name:'Rice paste + honey face pack',    day:'Sunday'},
+  {id:'bedsheet', name:'Clean bedsheet / pillow cover',   day:'Sunday'},
+  {id:'groceries',name:'Grocery / meal prep',             day:'Sunday'},
+  {id:'weight',   name:'Weight check',                    day:'Monday morning'},
+  {id:'waist',    name:'Waist measurement',               day:'Monday morning'},
+];
+
+const DATES = ['Jun 1','Jun 2','Jun 3','Jun 4','Jun 5','Jun 6','Jun 7',
+               'Jun 8','Jun 9','Jun 10','Jun 11','Jun 12','Jun 13','Jun 14','Jun 15'];
+
+const KEY_D = 'ht15_days';
+const KEY_W = 'ht15_weekly';
+
+let data = {};
+let wData = {};
+let cur = 0;
+
+function load() {
+  try { const r = localStorage.getItem(KEY_D); if (r) data = JSON.parse(r); } catch(e){}
+  try { const r = localStorage.getItem(KEY_W); if (r) wData = JSON.parse(r); } catch(e){}
+}
+
+function persist() {
+  try { localStorage.setItem(KEY_D, JSON.stringify(data)); localStorage.setItem(KEY_W, JSON.stringify(wData)); } catch(e){}
+}
+
+function day(i) {
+  if (!data[i]) data[i] = {habits:{}, mood:5, energy:5, mistake:'', improve:''};
+  return data[i];
+}
+
+function scoreOf(i) {
+  const d = data[i]; if (!d) return 0;
+  return HABITS.filter(h => d.habits[h.id]).length;
+}
+
+function hasLog(i) { return data[i] && Object.keys(data[i].habits||{}).length > 0; }
+
+function scoreColor(s) {
+  if (s >= 10) return '#1d9e75';
+  if (s >= 8)  return '#378add';
+  if (s >= 5)  return '#ba7517';
+  return '#e24b4a';
+}
+
+function badgeInfo(s) {
+  if (s >= 10) return ['badge-excellent', 'Excellent!'];
+  if (s >= 8)  return ['badge-good', 'On target'];
+  if (s >= 5)  return ['badge-caution', 'Caution'];
+  return ['badge-bad', 'Recovery needed'];
+}
+
+function calcStreak() {
+  let s = 0;
+  for (let i = cur; i >= 0; i--) { if (scoreOf(i) >= 8) s++; else break; }
+  return s;
+}
+
+/* ── RENDER DAILY ── */
+function renderDaily() {
+  const d = day(cur);
+  document.getElementById('day-label').innerHTML = `Day ${cur+1} <span>${DATES[cur]}</span>`;
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur === 14;
+
+  const s = scoreOf(cur);
+  const pct = Math.round((s / 12) * 100);
+  document.getElementById('score-num').textContent = s + '/12';
+  const fill = document.getElementById('track-fill');
+  fill.style.width = pct + '%';
+  fill.style.background = hasLog(cur) ? scoreColor(s) : 'var(--border)';
+
+  const badge = document.getElementById('score-badge');
+  if (!hasLog(cur)) { badge.className = 'badge badge-none'; badge.textContent = '—'; }
+  else { const [cls, lbl] = badgeInfo(s); badge.className = 'badge ' + cls; badge.textContent = lbl; }
+
+  document.getElementById('habits-list').innerHTML = HABITS.map(h => `
+    <div class="habit${d.habits[h.id] ? ' done' : ''}" onclick="toggleHabit('${h.id}')">
+      <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="habit-name">${h.name}</div>
+      <div class="habit-cat">${h.cat}</div>
+    </div>
+  `).join('');
+
+  const sl_m = document.getElementById('sl-mood');
+  const sl_e = document.getElementById('sl-energy');
+  sl_m.value = d.mood || 5;
+  sl_e.value = d.energy || 5;
+  document.getElementById('v-mood').textContent = (d.mood || 5) + '/10';
+  document.getElementById('v-energy').textContent = (d.energy || 5) + '/10';
+  document.getElementById('n-mistake').value = d.mistake || '';
+  document.getElementById('n-improve').value = d.improve || '';
+
+  const streak = calcStreak();
+  document.getElementById('v-streak').textContent = streak ? streak + ' day' + (streak > 1 ? 's' : '') : '—';
+}
+
+function toggleHabit(id) {
+  const d = day(cur);
+  d.habits[id] = !d.habits[id];
+  persist();
+  renderDaily();
+}
+
+function setMetric(key, val) {
+  const d = day(cur);
+  d[key] = parseInt(val);
+  document.getElementById('v-' + key).textContent = val + '/10';
+  persist();
+}
+
+function autoSave() {
+  const d = day(cur);
+  d.mistake = document.getElementById('n-mistake').value;
+  d.improve = document.getElementById('n-improve').value;
+  persist();
+}
+
+function saveDay() {
+  autoSave();
+  const t = document.getElementById('toast');
+  t.textContent = '✓ Day ' + (cur+1) + ' saved!';
+  t.style.opacity = '1';
+  setTimeout(() => t.style.opacity = '0', 2200);
+}
+
+function prevDay() { if (cur > 0) { cur--; renderDaily(); } }
+function nextDay() { if (cur < 14) { cur++; renderDaily(); } }
+
+/* ── RENDER OVERVIEW ── */
+function renderOverview() {
+  const scores = DATES.map((_, i) => scoreOf(i));
+  const logged = DATES.filter((_, i) => hasLog(i)).length;
+  const avg = logged ? (scores.filter((_, i) => hasLog(i)).reduce((a, b) => a + b, 0) / logged) : 0;
+  const excellent = DATES.filter((_, i) => hasLog(i) && scoreOf(i) >= 10).length;
+  let streak = 0; for (let i = cur; i >= 0; i--) { if (scoreOf(i) >= 8) streak++; else break; }
+
+  document.getElementById('summary-row').innerHTML = `
+    <div class="sum-card"><div class="sum-val">${logged}</div><div class="sum-label">Days logged</div></div>
+    <div class="sum-card"><div class="sum-val">${logged ? avg.toFixed(1) : '—'}</div><div class="sum-label">Avg score</div></div>
+    <div class="sum-card"><div class="sum-val">${excellent}</div><div class="sum-label">Excellent days</div></div>
+    <div class="sum-card"><div class="sum-val">${streak}</div><div class="sum-label">Current streak</div></div>
+  `;
+
+  const today = new Date();
+  document.getElementById('overview-grid').innerHTML = DATES.map((d, i) => {
+    const s = scoreOf(i);
+    const hasl = hasLog(i);
+    const cls = hasl ? (s>=10?'excellent':s>=8?'good':s>=5?'caution':'bad') : 'empty';
+    const isToday = today.getMonth() === 5 && today.getDate() === i + 1 ? ' today' : '';
+    const pips = HABITS.map(h => `<div class="pip${(data[i]&&data[i].habits[h.id])?' done':''}"></div>`).join('');
+    return `<div class="day-cell${isToday}" onclick="goDay(${i})">
+      <div class="dc-date">${d}</div>
+      <div class="dc-score ${cls}">${hasl ? s+'/12' : '·'}</div>
+      <div class="dc-pips">${pips}</div>
+    </div>`;
+  }).join('');
+
+  drawTrend(scores);
+}
+
+function goDay(i) { cur = i; switchTab('daily'); }
+
+function drawTrend(scores) {
+  const canvas = document.getElementById('trend-canvas');
+  const W = canvas.offsetWidth || 640;
+  canvas.width = W * (window.devicePixelRatio || 1);
+  canvas.height = 110 * (window.devicePixelRatio || 1);
+  canvas.style.width = W + 'px';
+  canvas.style.height = '110px';
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, 110);
+
+  const pad = 24, h = 80;
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+  const textColor = isDark ? '#5a5854' : '#a09e99';
+
+  [[5,'#ba7517'],[8,'#378add'],[10,'#1d9e75']].forEach(([y, col]) => {
+    const yp = pad + h - (y/12)*h;
+    ctx.strokeStyle = col + '55';
+    ctx.lineWidth = 1; ctx.setLineDash([4,5]);
+    ctx.beginPath(); ctx.moveTo(pad, yp); ctx.lineTo(W-pad, yp); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = textColor; ctx.font = '10px system-ui';
+    ctx.fillText(y, 4, yp + 3.5);
+  });
+
+  const pts = scores.map((s, i) => ({
+    x: pad + (i / 14) * (W - pad*2),
+    y: pad + h - (s / 12) * h
+  }));
+
+  ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.strokeStyle = isDark ? 'rgba(85,183,235,0.5)' : 'rgba(55,138,221,0.5)';
+  ctx.lineWidth = 1.5; ctx.stroke();
+
+  pts.forEach((p, i) => {
+    if (!hasLog(i)) return;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 3.5, 0, Math.PI*2);
+    ctx.fillStyle = scoreColor(scores[i]); ctx.fill();
+  });
+}
+
+/* ── WEEKLY ── */
+function renderWeekly() {
+  document.getElementById('weekly-list').innerHTML = WEEKLY.map(w => `
+    <div class="weekly-item${wData[w.id]?' done':''}" onclick="toggleWeekly('${w.id}')">
+      <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="habit-name">${w.name}</div>
+      <div class="w-day">${w.day}</div>
+    </div>
+  `).join('');
+}
+
+function toggleWeekly(id) { wData[id] = !wData[id]; persist(); renderWeekly(); }
+
+function saveWeekly() {
+  persist();
+  const t = document.getElementById('toast-w');
+  t.textContent = '✓ Weekly habits saved!';
+  t.style.opacity = '1';
+  setTimeout(() => t.style.opacity = '0', 2200);
+}
+
+/* ── TABS ── */
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['daily','overview','weekly'][i] === name);
+  });
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  if (name === 'overview') { renderOverview(); }
+  if (name === 'weekly') renderWeekly();
+}
+
+load();
+renderDaily();
+</script>
+</body>
+</html>
